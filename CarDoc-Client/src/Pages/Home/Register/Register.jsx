@@ -1,12 +1,16 @@
 import React from 'react';
 import img from '../../../assets/images/login/login.svg';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../../../Providers/AuthProvider';
 
 const Register = () => {
 
-    const {createUser} = useContext(AuthContext);
+    const { createUser } = useContext(AuthContext);
+
+    const location = useLocation();
+    const from = location?.state?.from?.pathname || '/';
+    const navigate = useNavigate();
 
     const handleRegister = (event) => {
         event.preventDefault();
@@ -16,13 +20,14 @@ const Register = () => {
         console.log(password, email);
 
         createUser(email, password)
-        .then(result=>{
-            const loggedUser = result.user;
-            // console.log(loggedUser);
-        })
-        .catch(error=>{
-            console.log(error)
-        })
+            .then(result => {
+                const loggedUser = result.user;
+                // console.log(loggedUser);
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.log(error)
+            })
     }
 
     return (

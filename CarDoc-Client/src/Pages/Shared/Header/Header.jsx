@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../../assets/logo.svg';
 import { AuthContext } from '../../../Providers/AuthProvider';
 
@@ -7,14 +7,16 @@ const Header = () => {
 
     const { user, logOut } = useContext(AuthContext);
 
+    const navigate = useNavigate();
+
     const handleLogOut = () => {
         logOut()
-        .then(() => {
-            // Sign-out successful.
-          }).catch((error) => {
-            // An error happened.
-            console.log(error)
-          });
+            .then(() => {
+                navigate('/')
+            }).catch((error) => {
+                // An error happened.
+                console.log(error)
+            });
     }
 
     const navItems = <>

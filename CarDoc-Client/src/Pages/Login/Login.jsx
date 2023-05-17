@@ -1,12 +1,17 @@
 import React, { useContext } from 'react';
 import img from '../../assets/images/login/login.svg';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../Providers/AuthProvider';
+import Swal from 'sweetalert2';
 
 const Login = () => {
-    const {login} = useContext(AuthContext);
+    const { login } = useContext(AuthContext);
+    
+    const location = useLocation();
+    const from = location?.state?.from?.pathname || '/';
+    const navigate = useNavigate();
 
-    const handleLogin = (event) =>{
+    const handleLogin = (event) => {
         event.preventDefault();
         const form = event.target;
         const email = form.email.value;
@@ -14,19 +19,27 @@ const Login = () => {
         console.log(password, email);
 
         login(email, password)
-        .then(result => {
-            const loggedUser = result.user;
-            // console.log('Current User: ', loggedUser)
-        })
-        .catch(error=> {
-            console.log(error);
-        })
+            .then(result => {
+                const loggedUser = result.user;
+                // console.log('Current User: ', loggedUser)
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.log('error: ' ,error.message)
+                if(error.message === 'Firebase: Error (auth/user-not-found).'){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: `${error.message}`,
+                    })
+                }
+            })
     }
 
     return (
         <div className="hero min-h-screen bg-neutral md:rounded-xl p-7">
             <div className="hero-content flex flex-col lg:flex-row gap-7">
-                <div className="lg:w-1/2">
+                <div className="w-full lg:w-1/2">
                     <img src={img} alt="" />
                 </div>
                 <div className="card flex-shrink-0  shadow-2xl bg-base-100 w-full lg:w-1/2">
