@@ -24,7 +24,7 @@ const Login = () => {
                     email: loggedUser.email
                 }
                 console.log(user)
-                // navigate(from, { replace: true });
+
                 fetch('http://localhost:5000/jwt',{
                     method: 'POST',
                     headers: {
@@ -36,7 +36,8 @@ const Login = () => {
                 .then(data=>{
                     console.log('jwt response:', data);
                     // WARNING: local storage is not the best place
-                    localStorage.setItem('carAccessToken', data.token)
+                    localStorage.setItem('carAccessToken', data.token);
+                    navigate(from, { replace: true });
                 })
             })
             .catch(error => {

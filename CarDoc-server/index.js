@@ -27,6 +27,27 @@ const client = new MongoClient(uri, {
   }
 });
 
+const verifyJWT = (req, res, next) => {
+  // console.log('hitting verify JWT');
+  // console.log(req.headers.authorization);
+
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' })
+  }
+  const token = authorization.split(' ')[1];
+  console.log('token inside verify JWT:', token);
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(403).send({ error: true, message: 'unauthorized access' })
+    }
+    req.decoded = decoded;
+
+    // this next() means if verifies it will go to the next stage of async(res, req) step and finally show data
+    next();
+  })
+}
+
 async function run() {
   try {
     await client.connect();
@@ -35,14 +56,14 @@ async function run() {
     const bookingCollection = client.db('CarDoctor').collection('bookings');
 
     // JWT
-    app.post('/jwt', (req, res)=>{
+    app.post('/jwt', (req, res) => {
       const user = req.body;
       console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '1h'
       });
-      console.log({token});
-      res.send({token});
+      console.log({ token });
+      res.send({ token });
     })
 
     // services routes
@@ -65,7 +86,14 @@ async function run() {
     })
 
     // bookings routes
-    app.get('/booking', async (req, res) => {
+    app.get('/booking', verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+      console.log('Came back after verify', decoded);
+
+      if(decoded.email !== req.query.email){
+        return res.status(403).send({error: 1, message: 'forbidden access'})
+      }
+
       let query = {};
       if (req.query.email) {
         query = { email: req.query.email }

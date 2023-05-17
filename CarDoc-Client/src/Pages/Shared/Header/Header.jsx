@@ -13,6 +13,7 @@ const Header = () => {
         logOut()
             .then(() => {
                 navigate('/')
+                localStorage.removeItem('carAccessToken')
             }).catch((error) => {
                 // An error happened.
                 console.log(error)

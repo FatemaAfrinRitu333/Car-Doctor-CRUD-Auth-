@@ -2,19 +2,45 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../Providers/AuthProvider';
 import BookingRow from './BookingRow';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const Bookings = () => {
 
-    const { user } = useContext(AuthContext);
+    const { user, logOut } = useContext(AuthContext);
     const [bookings, setBookings] = useState([]);
+    const navigate = useNavigate();
 
 
     const url = `http://localhost:5000/booking?email=${user.email}`;
     useEffect(() => {
-        fetch(url)
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                authorization: `Bearer ${localStorage.getItem('carAccessToken')}`
+            }
+        })
             .then(res => res.json())
-            .then(data => setBookings(data))
-    }, []);
+            .then(data => {
+                if (!data.error) {
+                    setBookings(data)
+                }
+                else {
+                    Swal.fire(
+                        'Token Expired',
+                        'Please login again',
+                        'error'
+                      )
+                    logOut().then(() => {
+                        navigate('/')
+                        localStorage.removeItem('carAccessToken')
+                    })
+                        .catch((error) => {
+                            // An error happened.
+                            console.log(error)
+                        });
+                }
+            })
+    }, [url, navigate, logOut]);
 
     const handleDelete = id => {
         const swalWithBootstrapButtons = Swal.mixin({
@@ -75,16 +101,16 @@ const Bookings = () => {
             headers: {
                 'content-type': 'application/json'
             },
-            body: JSON.stringify({status: 'confirm'})
+            body: JSON.stringify({ status: 'confirm' })
         })
             .then(res => res.json())
             .then(data => {
                 console.log(data)
-                if(data.modifiedCount > 0){
-                    const remaining = bookings.filter(booking=> booking._id !== id);
-                    const updated = bookings.find(booking=> booking._id === id);
+                if (data.modifiedCount > 0) {
+                    const remaining = bookings.filter(booking => booking._id !== id);
+                    const updated = bookings.find(booking => booking._id === id);
                     updated.status = 'confirm';
-                    const newBooking = [updated, ... remaining]
+                    const newBooking = [updated, ...remaining]
                     setBookings(newBooking);
                 }
             })
