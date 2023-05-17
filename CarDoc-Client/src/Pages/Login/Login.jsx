@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 
 const Login = () => {
     const { login } = useContext(AuthContext);
-    
+
     const location = useLocation();
     const from = location?.state?.from?.pathname || '/';
     const navigate = useNavigate();
@@ -16,13 +16,28 @@ const Login = () => {
         const form = event.target;
         const email = form.email.value;
         const password = form.password.value;
-        console.log(password, email);
 
         login(email, password)
             .then(result => {
                 const loggedUser = result.user;
-                // console.log('Current User: ', loggedUser)
-                navigate(from, { replace: true });
+                const user = {
+                    email: loggedUser.email
+                }
+                console.log(user)
+                // navigate(from, { replace: true });
+                fetch('http://localhost:5000/jwt',{
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify(user)
+                })
+                .then(res=> res.json())
+                .then(data=>{
+                    console.log('jwt response:', data);
+                    // WARNING: local storage is not the best place
+                    localStorage.setItem('carAccessToken', data.token)
+                })
             })
             .catch(error => {
                 console.log('error: ' ,error.message)
